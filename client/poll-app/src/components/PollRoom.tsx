@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import { Button, Typography, Box, CircularProgress } from "@mui/material";
 import type { VoteData, PollOption } from "../types";
@@ -12,6 +12,7 @@ const PollRoom = ({
   roomId: string;
   username: string;
   question: string;
+  liveVotes:any;
 }) => {
   const [votes, setVotes] = useState<VoteData>({ optionA: 0, optionB: 0 });
   const [hasVoted, setHasVoted] = useState<boolean>(false);

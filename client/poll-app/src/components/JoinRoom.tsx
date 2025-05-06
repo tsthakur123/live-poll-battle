@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { socket } from '../socket';
 import { Button, TextField, Typography, Box, CircularProgress } from '@mui/material';
 
 const JoinRoom = ({
-  username,
   onRoomJoined
 }: {
   username: string;

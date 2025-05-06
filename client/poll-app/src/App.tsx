@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateRoom from './components/CreateRoom';
 import JoinRoom from './components/JoinRoom';
 import PollRoom from './components/PollRoom';
-import { Button, TextField, Typography, Box, CircularProgress } from '@mui/material';
+import { TextField, Typography, Box, CircularProgress } from '@mui/material';
 
 function App() {
   const [username, setUsername] = useState('');
