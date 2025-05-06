@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { socket } from '../socket';
-import { Button, Typography, Box, CircularProgress } from '@mui/material';
-import type { VoteData, PollOption } from '../types';
+import React, { useEffect, useState } from "react";
+import { socket } from "../socket";
+import { Button, Typography, Box, CircularProgress } from "@mui/material";
+import type { VoteData, PollOption } from "../types";
 
 const PollRoom = ({
   roomId,
   username,
-  question
+  question,
+  liveVotes
 }: {
   roomId: string;
   username: string;
@@ -17,13 +18,21 @@ const PollRoom = ({
   const [active, setActive] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number>(60);
 
+  if(liveVotes){
+    setVotes(liveVotes);
+  }
+
   // Timer and socket handling
   useEffect(() => {
-    socket.on('vote-updated', (newVotes: VoteData) => {
+    socket.on("vote-updated", (newVotes: VoteData) => {
       setVotes(newVotes);
+      localStorage.setItem(`poll_votes_${roomId}`, JSON.stringify(newVotes));
     });
-    socket.on('poll-ended', () => {
+    socket.on("poll-ended", () => {
       setActive(false);
+      localStorage.removeItem("poll_roomId");
+      localStorage.removeItem("poll_question");
+      localStorage.removeItem(`poll_votes_${roomId}`);
     });
 
     const interval = setInterval(() => {
@@ -37,17 +46,17 @@ const PollRoom = ({
     }, 1000);
 
     return () => {
-      socket.off('vote-updated');
-      socket.off('poll-ended');
+      socket.off("vote-updated");
+      socket.off("poll-ended");
       clearInterval(interval);
     };
-  }, []);
+  }, [roomId]);
 
   const vote = (option: PollOption) => {
     if (hasVoted || !active) return;
-    socket.emit('vote', { roomId, username, option });
+    socket.emit("vote", { roomId, username, option });
     setHasVoted(true);
-    localStorage.setItem(`voted_${roomId}`, 'true');
+    localStorage.setItem(`voted_${roomId}`, "true");
   };
 
   useEffect(() => {
@@ -58,11 +67,13 @@ const PollRoom = ({
 
   // Extract the poll options (A vs B)
   const match = question.match(/^(\w+)\s?vs\s?(\w+)$/);
-  const A = match ? match[1] : 'Option A';
-  const B = match ? match[2] : 'Option B';
+  const A = match ? match[1] : "Option A";
+  const B = match ? match[2] : "Option B";
 
   return (
-    <Box sx={{ padding: 3, textAlign: 'center', maxWidth: 500, margin: '0 auto' }}>
+    <Box
+      sx={{ padding: 3, textAlign: "center", maxWidth: 500, margin: "0 auto" }}
+    >
       <Typography variant="h4" gutterBottom>
         Poll: {question}
       </Typography>
@@ -73,11 +84,11 @@ const PollRoom = ({
         Time Left: {timeLeft}s
       </Typography>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
         <Button
           variant="contained"
           color="primary"
-          onClick={() => vote('optionA')}
+          onClick={() => vote("optionA")}
           disabled={hasVoted || !active}
           sx={{ minWidth: 120 }}
         >
@@ -86,7 +97,7 @@ const PollRoom = ({
         <Button
           variant="contained"
           color="secondary"
-          onClick={() => vote('optionB')}
+          onClick={() => vote("optionB")}
           disabled={hasVoted || !active}
           sx={{ minWidth: 120 }}
         >
@@ -96,7 +107,9 @@ const PollRoom = ({
 
       {active ? (
         <Box sx={{ marginTop: 3 }}>
-          {hasVoted && <Typography variant="body2">You have already voted</Typography>}
+          {hasVoted && (
+            <Typography variant="body2">You have already voted</Typography>
+          )}
         </Box>
       ) : (
         <Typography variant="body2" color="textSecondary" sx={{ marginTop: 3 }}>
@@ -104,9 +117,21 @@ const PollRoom = ({
         </Typography>
       )}
 
-      {!active && (
-        <CircularProgress sx={{ marginTop: 2 }} />
-      )}
+      {!active && <CircularProgress sx={{ marginTop: 2 }} />}
+
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={() => {
+          localStorage.removeItem("poll_roomId");
+          localStorage.removeItem("poll_question");
+          localStorage.removeItem(`voted_${roomId}`);
+          window.location.reload(); // or call a passed `onLeave` prop
+        }}
+        sx={{ marginTop: 4 }}
+      >
+        Leave Room
+      </Button>
     </Box>
   );
 };

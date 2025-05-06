@@ -1,24 +1,33 @@
-import React, { useState } from 'react';
-import { socket } from '../socket';
-import { Button, TextField, Typography, Box, CircularProgress } from '@mui/material';
+import React, { useState } from "react";
+import { socket } from "../socket";
+import {
+  Button,
+  TextField,
+  Typography,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 
 const CreateRoom = ({
   username,
-  onRoomCreated
+  onRoomCreated,
 }: {
   username: string;
   onRoomCreated: (id: string, question: string) => void;
 }) => {
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleCreate = () => {
     if (!question) return;
     setLoading(true);
 
-    socket.emit('create-room', { username, question });
-    socket.once('room-created', ({ roomId, question }) => {
+    socket.emit("create-room", { username, question });
+    socket.once("room-created", ({ roomId, question }) => {
       setLoading(false);
+      localStorage.setItem("poll_roomId", roomId);
+      localStorage.setItem("poll_question", question);
+      localStorage.setItem("poll_username", username);
       onRoomCreated(roomId, question);
     });
   };
@@ -26,20 +35,20 @@ const CreateRoom = ({
   return (
     <Box
       sx={{
-        width: '100%',
+        width: "100%",
         maxWidth: 400,
-        margin: '0 auto',
+        margin: "0 auto",
         padding: 3,
         borderRadius: 2,
         boxShadow: 3,
-        backgroundColor: 'background.paper',
-        textAlign: 'center',
+        backgroundColor: "background.paper",
+        textAlign: "center",
       }}
     >
-      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
+      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>
         Create Poll
       </Typography>
-      
+
       <TextField
         variant="outlined"
         label="Poll Question (e.g. Cats vs Dogs)"
@@ -56,25 +65,25 @@ const CreateRoom = ({
         onClick={handleCreate}
         disabled={!question || loading}
         sx={{
-          padding: '10px',
-          fontWeight: 'bold',
-          fontSize: '1.1rem',
-          textTransform: 'none',
+          padding: "10px",
+          fontWeight: "bold",
+          fontSize: "1.1rem",
+          textTransform: "none",
           borderRadius: 2,
-          '&:hover': {
-            backgroundColor: '#FE744D',
+          "&:hover": {
+            backgroundColor: "#FE744D",
           },
         }}
       >
         {loading ? (
-          <CircularProgress size={24} sx={{ color: 'white' }} />
+          <CircularProgress size={24} sx={{ color: "white" }} />
         ) : (
-          'Create Room'
+          "Create Room"
         )}
       </Button>
 
-      {question === '' && !loading && (
-        <Typography variant="body2" sx={{ marginTop: 2, color: 'gray' }}>
+      {question === "" && !loading && (
+        <Typography variant="body2" sx={{ marginTop: 2, color: "gray" }}>
           Please enter a poll question.
         </Typography>
       )}

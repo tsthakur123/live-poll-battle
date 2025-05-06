@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CreateRoom from './components/CreateRoom';
 import JoinRoom from './components/JoinRoom';
 import PollRoom from './components/PollRoom';
@@ -8,8 +8,10 @@ function App() {
   const [username, setUsername] = useState('');
   const [roomId, setRoomId] = useState('');
   const [question, setQuestion] = useState('');
+  const [votes, setVotes] = useState(0);
   const [inRoom, setInRoom] = useState(false);
   const [loading, setLoading] = useState(false);
+
 
   const handleRoomChange = (id: string, q: string) => {
     setRoomId(id);
@@ -17,6 +19,24 @@ function App() {
     setInRoom(true);
     setLoading(false);
   };
+
+  // Restore from localStorage on first render
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('poll_username');
+    const savedRoomId = localStorage.getItem('poll_roomId');
+    const savedQuestion = localStorage.getItem('poll_question');
+    const savedVotes = localStorage.getItem(`poll_votes_${roomId}`);
+    if (savedVotes) {
+      setVotes(JSON.parse(savedVotes));
+    }
+
+    if (savedUsername && savedRoomId && savedQuestion) {
+      setUsername(savedUsername);
+      setRoomId(savedRoomId);
+      setQuestion(savedQuestion);
+      setInRoom(true);
+    }
+  }, [roomId]);
 
   return (
     <Box sx={{ padding: 3, textAlign: 'center', maxWidth: 600, margin: '0 auto' }}>
@@ -54,7 +74,7 @@ function App() {
         </>
       ) : (
         <Box>
-          <PollRoom roomId={roomId} username={username} question={question} />
+          <PollRoom roomId={roomId} username={username} question={question} liveVotes={votes}/>
         </Box>
       )}
 
